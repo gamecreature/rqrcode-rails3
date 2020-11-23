@@ -1,7 +1,6 @@
 require 'action_controller'
 require 'rqrcode'
 require 'rqrcode-rails3/size_calculator.rb'
-require 'rqrcode-rails3/renderers/svg.rb'
 
 module RQRCode
   Mime::Type.register "image/svg+xml", :svg  unless Mime::Type.lookup_by_extension(:svg)
@@ -16,7 +15,8 @@ module RQRCode
     level  = options[:level] || :h
 
     qrcode = RQRCode::QRCode.new(string, :size => size, :level => level)
-    svg    = RQRCode::Renderers::SVG::render(qrcode, options)
+    svg    = qrcode.as_svg(options)
+    # RQRCode::Renderers::SVG::rende r(qrcode, options)
 
     if format && format == :svg
       svg
@@ -32,6 +32,6 @@ module RQRCode
   ActionController::Renderers.add :qrcode do |string, options|
     format = self.request.format.symbol
     data = RQRCode.render_qrcode(string, format, options)
-    self.response_body = render_to_string(:text => data, :template => nil)
+    self.response_body = render_to_string(plain: data, template: nil)
   end
 end
